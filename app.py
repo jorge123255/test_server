@@ -20,13 +20,18 @@ os.makedirs(LOGS_FOLDER, exist_ok=True)
 
 # Configure logging
 logging.basicConfig(
-    filename=os.path.join(LOGS_FOLDER, 'test_server.log'),
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(os.path.join(LOGS_FOLDER, 'test_server.log')),
+        logging.StreamHandler()  # This will output to console
+    ]
 )
 
 def log_test_attempt(test_name, client_ip, details=None):
-    logging.info(f"Test: {test_name} | Client: {client_ip} | Details: {details}")
+    message = f"Test: {test_name} | Client: {client_ip} | Details: {details}"
+    print(f"[+] {message}")  # Console output with visual indicator
+    logging.info(message)
 
 # EICAR test string - Standard Anti-Virus Test File
 EICAR = r'X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
@@ -194,6 +199,9 @@ def index():
 
 @app.route('/download/eicar')
 def download_eicar():
+    client_ip = request.remote_addr
+    print(f"[+] EICAR Test requested from {client_ip}")
+    logging.info(f"EICAR Test File downloaded by {client_ip}")
     return send_file(
         io.BytesIO(EICAR.encode()),
         mimetype='application/x-msdownload',
@@ -203,6 +211,9 @@ def download_eicar():
 
 @app.route('/download/fake-spyware')
 def download_fake_spyware():
+    client_ip = request.remote_addr
+    print(f"[+] Fake Spyware Test requested from {client_ip}")
+    logging.info(f"Fake Spyware downloaded by {client_ip}")
     fake_spyware = '''
 # This is a harmless fake spyware for testing
 import os
@@ -231,6 +242,9 @@ def download_large_file():
 
 @app.route('/download/fake-ransomware')
 def download_fake_ransomware():
+    client_ip = request.remote_addr
+    print(f"[+] Fake Ransomware Test requested from {client_ip}")
+    logging.info(f"Fake Ransomware Pattern downloaded by {client_ip}")
     fake_ransomware = '''
 # This is a harmless fake ransomware pattern for testing
 import os
@@ -255,12 +269,23 @@ No actual encryption is performed
 
 @app.route('/sql-injection-test')
 def sql_injection_test():
+    client_ip = request.remote_addr
     user_input = request.args.get('id', '1')
-    # Simulate SQL injection vulnerability
     query = f"SELECT * FROM users WHERE id = {user_input}"
+    
+    log_message = f"SQL Injection Test | Client: {client_ip} | Payload: {user_input}"
+    print(f"[+] {log_message}")
+    logging.info(log_message)
+    
     return jsonify({
         'query': query,
-        'message': 'This endpoint simulates SQL injection vulnerability'
+        'message': 'This endpoint simulates SQL injection vulnerability',
+        'expected_firewall_actions': [
+            'Detect SQL injection pattern',
+            'Block malicious SQL characters',
+            'Generate high severity IPS alert',
+            'Log attempt in threat logs'
+        ]
     })
 
 @app.route('/command-injection-test')
@@ -332,13 +357,26 @@ def suspicious_behavior():
 
 @app.route('/dns-tunnel-sim')
 def dns_tunnel_sim():
+    client_ip = request.remote_addr
     # Simulate DNS tunneling traffic
     encoded_data = base64.b64encode(os.urandom(30)).decode()
     subdomain = f"{encoded_data}.fake-exfil.com"
+    
+    # Enhanced logging
+    log_message = f"DNS Tunneling Test | Client: {client_ip} | Payload: {subdomain[:30]}..."
+    print(f"[+] {log_message}")
+    logging.info(log_message)
+    
     return jsonify({
         'dns_query': subdomain,
         'type': 'DNS-Tunnel-Simulation',
-        'message': 'Simulating DNS tunneling pattern'
+        'message': 'Simulating DNS tunneling pattern',
+        'expected_firewall_actions': [
+            'Detect base64 encoded subdomain',
+            'Log as potential data exfiltration',
+            'Alert on DNS tunneling attempt',
+            'Optionally block the DNS query'
+        ]
     })
 
 @app.route('/protocol-abuse')
@@ -361,11 +399,26 @@ def cve_patterns():
 
 @app.route('/webshell')
 def fake_webshell():
+    client_ip = request.remote_addr
     cmd = request.args.get('cmd', 'dir')
+    
+    log_message = f"Web Shell Test | Client: {client_ip} | Command: {cmd}"
+    print(f"[+] {log_message}")
+    logging.info(log_message)
+    
     return f'''
     <html>
         <body style="background: black; color: green; font-family: monospace;">
             <h3>Test Web Shell (Simulation)</h3>
+            <div style="background: #300; color: #fff; padding: 10px; margin: 10px 0; border-radius: 5px;">
+                <h4>Expected Firewall Actions:</h4>
+                <ul>
+                    <li>Detect web shell signature</li>
+                    <li>Block command execution attempts</li>
+                    <li>Generate high severity alert</li>
+                    <li>Log in malware/threat logs</li>
+                </ul>
+            </div>
             <form>
                 <input type="text" name="cmd" value="{cmd}" style="width: 300px;">
                 <input type="submit" value="Run">
@@ -383,13 +436,26 @@ Testing web shell detection patterns
 
 @app.route('/port-scan-sim')
 def port_scan_sim():
-    # Simulate port scanning behavior
+    client_ip = request.remote_addr
     ports = list(range(20, 25)) + list(range(80, 85)) + list(range(443, 445))
     scan_results = {
         port: random.choice(['open', 'closed', 'filtered']) 
         for port in ports
     }
-    return jsonify(scan_results)
+    
+    log_message = f"Port Scan Test | Client: {client_ip} | Ports: {len(ports)} ports"
+    print(f"[+] {log_message}")
+    logging.info(log_message)
+    
+    return jsonify({
+        'scan_results': scan_results,
+        'expected_firewall_actions': [
+            'Detect rapid port scanning behavior',
+            'Generate port scan alert',
+            'Rate limit or block scanning IP',
+            'Log scanning activity in threat logs'
+        ]
+    })
 
 @app.route('/malware-c2')
 def simulate_c2():
@@ -418,10 +484,25 @@ def ssl_test():
 
 @app.route('/xss-test')
 def xss_test():
+    client_ip = request.remote_addr
     payload = request.args.get('payload', '<script>alert(1)</script>')
+    
+    log_message = f"XSS Test | Client: {client_ip} | Payload: {payload}"
+    print(f"[+] {log_message}")
+    logging.info(log_message)
+    
     return f'''
     <h3>XSS Test Page</h3>
     <div>Testing payload: {payload}</div>
+    <div style="background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 5px;">
+        <h4>Expected Firewall Actions:</h4>
+        <ul>
+            <li>Detect and block XSS attempt</li>
+            <li>Generate script injection alert</li>
+            <li>Log in threat prevention logs</li>
+            <li>Block if policy configured</li>
+        </ul>
+    </div>
     <hr>
     <form>
         <input type="text" name="payload" value="{payload}">
@@ -450,11 +531,13 @@ def dos_simulation():
 
 @app.route('/advanced-c2')
 def advanced_c2():
-    # More sophisticated C2 patterns
+    client_ip = request.remote_addr
+    domain = f"srv{random.randint(1000,9999)}.evil-test.com"
+    
     patterns = [
         {
             'type': 'domain_generation',
-            'domain': f"srv{random.randint(1000,9999)}.evil-test.com",
+            'domain': domain,
             'interval': '3600s'
         },
         {
@@ -471,8 +554,23 @@ def advanced_c2():
             'interval': 'random(300-900)s'
         }
     ]
+    
+    log_message = f"Advanced C2 Test | Client: {client_ip} | Domain: {domain}"
+    print(f"[+] {log_message}")
+    logging.info(log_message)
+    
     time.sleep(random.uniform(0.1, 0.5))
-    return jsonify(patterns)
+    return jsonify({
+        'patterns': patterns,
+        'expected_firewall_actions': [
+            'Detect DGA (Domain Generation Algorithm) pattern',
+            'Identify beaconing behavior',
+            'Flag suspicious domain access',
+            'Log C2 communication attempt',
+            'Block staged download attempts',
+            'Alert on encrypted beacon pattern'
+        ]
+    })
 
 @app.route('/run-all-tests')
 def run_all_tests():
@@ -586,8 +684,12 @@ def expected_alerts():
 
 @app.route('/download/malware-patterns')
 def download_malware_patterns():
+    client_ip = request.remote_addr
     pattern_type = request.args.get('type', 'trojan')
     patterns = MALWARE_PATTERNS.get(pattern_type, MALWARE_PATTERNS['trojan'])
+    
+    print(f"[+] Malware Pattern Test ({pattern_type}) requested from {client_ip}")
+    logging.info(f"Malware Pattern Test ({pattern_type}) downloaded by {client_ip}")
     
     malware_simulation = f'''
 # This is a harmless simulation file demonstrating {pattern_type} patterns
@@ -597,12 +699,13 @@ SIGNATURE_PATTERNS = {json.dumps(patterns, indent=4)}
 
 def simulate_behavior():
     """Simulates common {pattern_type} behavior patterns (NO ACTUAL ACTIONS)"""
-    print(f"[SIMULATION] {pattern_type} behavior patterns:")
+    print("[SIMULATION] Starting pattern simulation...")
     
-    for category, items in SIGNATURE_PATTERNS.items():
-        print(f"[PATTERN] Category: {category}")
+    patterns = SIGNATURE_PATTERNS  # Get the patterns defined above
+    for pattern_type, items in patterns.items():
+        print(f"[PATTERN] Testing {{pattern_type}}")
         for item in items:
-            print(f"  - Would access: {item}")
+            print(f"  - Would access: {{item}}")
 
 # Add common hex patterns that AVs look for
 COMMON_SIGNATURES = [
@@ -652,6 +755,17 @@ print("Simulating packed/obfuscated malware patterns")
         as_attachment=True,
         download_name='packed_test_sample.bin'
     )
+
+@app.route('/test_logs/test_server.log')
+def serve_log_file():
+    try:
+        return send_file(
+            os.path.join(LOGS_FOLDER, 'test_server.log'),
+            mimetype='text/plain',
+            as_attachment=False
+        )
+    except Exception as e:
+        return f"Error accessing log file: {str(e)}", 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True) 
