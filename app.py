@@ -115,6 +115,10 @@ def index():
                 <a href="/download/fake-ransomware">Ransomware Pattern</a>
                 <div class="description">Tests ransomware behavior detection</div>
             </div>
+            <div class="test-item">
+                <a href="/download/blocked-file">Blocked File Test</a>
+                <div class="description">Tests file blocking by extension/type</div>
+            </div>
         </div>
 
         <div class="test-group">
@@ -306,6 +310,15 @@ def download_malicious_mime():
         mimetype='application/x-msdownload',
         as_attachment=True,
         download_name='test.exe'
+    )
+
+@app.route('/download/blocked-file')
+def download_blocked_file():
+    return send_file(
+        io.BytesIO(b"Harmless content"),
+        mimetype='application/x-msdownload',
+        as_attachment=True,
+        download_name='test.exe'  # Blocked by "strict" profile
     )
 
 @app.route('/base64-exfil')
