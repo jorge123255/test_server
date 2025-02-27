@@ -599,32 +599,10 @@ def simulate_behavior():
     """Simulates common {pattern_type} behavior patterns (NO ACTUAL ACTIONS)"""
     print(f"[SIMULATION] {pattern_type} behavior patterns:")
     
-    if '{pattern_type}' == 'trojan':
-        print("[PATTERN] Attempting to modify registry keys (simulated):")
-        for key in SIGNATURE_PATTERNS['registry_keys']:
-            print(f"  - Would modify: {key}")
-            
-        print("[PATTERN] Network connection attempts (simulated):")
-        for url in SIGNATURE_PATTERNS['network']:
-            print(f"  - Would connect to: {url}")
-            
-    elif '{pattern_type}' == 'ransomware':
-        print("[PATTERN] File encryption simulation:")
-        for ext in SIGNATURE_PATTERNS['extensions']:
-            print(f"  - Would rename files with: {ext}")
-            
-        print("[PATTERN] System modification attempts (simulated):")
-        for proc in SIGNATURE_PATTERNS['processes']:
-            print(f"  - Would execute: {proc}")
-            
-    elif '{pattern_type}' == 'rootkit':
-        print("[PATTERN] System hook attempts (simulated):")
-        for hook in SIGNATURE_PATTERNS['hooks']:
-            print(f"  - Would hook: {hook}")
-            
-        print("[PATTERN] Driver manipulation (simulated):")
-        for driver in SIGNATURE_PATTERNS['drivers']:
-            print(f"  - Would modify: {driver}")
+    for category, items in SIGNATURE_PATTERNS.items():
+        print(f"[PATTERN] Category: {category}")
+        for item in items:
+            print(f"  - Would access: {item}")
 
 # Add common hex patterns that AVs look for
 COMMON_SIGNATURES = [
@@ -637,6 +615,7 @@ COMMON_SIGNATURES = [
 if __name__ == '__main__':
     print("This is a test file for AV detection patterns")
     print("NO ACTUAL MALICIOUS CODE IS PRESENT")
+    simulate_behavior()
 '''
     
     return send_file(
