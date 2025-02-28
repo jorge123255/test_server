@@ -176,6 +176,14 @@ def index():
                 <input type="submit" value="Upload">
                 <div class="description">Test file upload filtering</div>
             </form>
+            <div class="test-item">
+                <a href="/download/test-exe">Test EXE Download</a>
+                <div class="description">Tests executable file blocking</div>
+            </div>
+            <div class="test-item">
+                <a href="/download/test-txt">Test TXT Download</a>
+                <div class="description">Tests allowed file type logging</div>
+            </div>
         </div>
 
         <div class="test-group">
@@ -312,13 +320,26 @@ def download_malicious_mime():
         download_name='test.exe'
     )
 
-@app.route('/download/blocked-file')
-def download_blocked_file():
+@app.route('/download/test-exe')
+def download_test_exe():
+    client_ip = request.remote_addr
+    log_test_attempt("File Blocking Test (.exe)", client_ip)
     return send_file(
-        io.BytesIO(b"Harmless content"),
+        io.BytesIO(b"Harmless content for testing file blocking"),
         mimetype='application/x-msdownload',
         as_attachment=True,
-        download_name='test.exe'  # Blocked by "strict" profile
+        download_name='test.exe'  # This should be blocked
+    )
+
+@app.route('/download/test-txt')
+def download_test_txt():
+    client_ip = request.remote_addr
+    log_test_attempt("File Logging Test (.txt)", client_ip)
+    return send_file(
+        io.BytesIO(b"Harmless text content for testing"),
+        mimetype='text/plain',
+        as_attachment=True,
+        download_name='test.txt'  # This should be logged, not blocked
     )
 
 @app.route('/base64-exfil')
